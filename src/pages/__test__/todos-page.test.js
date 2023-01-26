@@ -1,20 +1,45 @@
 import { render, screen } from "@testing-library/react";
-import TodosPage from "../todos-page";
 import userEvent from "@testing-library/user-event";
-
-///eklenen tas in listeye gelip gelmediği testi
-//input -todoınput--ve --todolist--in parentinede test edılmeli. ortak bır parentte
-
+import TodosPage from "../todos-page";
+const addTask = (task) => {
+  const buttonEl = screen.getByRole("button", { name: "Add" });
+  const inputEl = screen.getByPlaceholderText(/Type some text/i);
+  userEvent.type(inputEl, task);
+  userEvent.click(buttonEl);
+};
 describe("adding functionality", () => {
   it("should render new task in the list", () => {
-    render(<TodosPage />); ///ikiisnin ortak parentı -todospage
-    const buttonEl = screen.getByRole("button", { name: "Add" }); //birçok button olabılır,o nedenlebutton uzerınde yazılı name
-    const inputEl = screen.getByPlaceholderText(/Type some text/i);
-    userEvent.type(inputEl, "hello react");
-    userEvent.click(buttonEl);
-
-    //hello react geldi mi "hello react" veya /hello reat/i
-    const listItemEl = screen.getByText(/hello react/i);
+    render(<TodosPage />);
+    addTask("This task is for testing purpose");
+    const listItemEl = screen.getByText(/This task is for testing purpose/i);
     expect(listItemEl).toBeInTheDocument();
+  });
+});
+describe("completed functionality", () => {
+  it("task should not have 'completed' class when it is initially created", () => {
+    render(<TodosPage />);
+    addTask("Hi there!");
+    const listItemEl = screen.getByText(/Hi there!/i);
+    expect(listItemEl).not.toHaveClass("completed");
+  });
+
+  it("task should have 'completed' class when  clicking on it", () => {
+    render(<TodosPage />);
+    addTask("Hi there!");
+    const listItemEl = screen.getByText(/Hi there!/i);
+    userEvent.click(listItemEl);
+    expect(listItemEl).toHaveClass("completed");
+  });
+});
+
+describe("deleting fuctionalty", () => {
+  it("task should have been removed when clicking delete button", () => {
+    render(<TodosPage />);
+    addTask("Hi there!");
+    global.confirm = () => true; // sil butonuna basinca alert geliyor bunu yapmazsak calismaz
+    const listItemEl = screen.getByText(/Hi there!/i);
+    const delButton = screen.getByRole("button", { name: "❌" });
+    userEvent.click(delButton);
+    expect(listItemEl).not.toBeInTheDocument();
   });
 });
